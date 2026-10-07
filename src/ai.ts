@@ -32,10 +32,23 @@ function extractJson(text:string):AiScript|null{
           .map((x:string)=>x.trim())
           .filter(Boolean);
       }else if(typeof rawBody==="string"){
-        body=rawBody
+        const normalized=rawBody
+          .replace(/\s+/g," ")
+          .trim();
+
+        body=normalized
           .split(/(?<=[.!?])\s+|\n+/)
           .map((x:string)=>x.trim())
           .filter(Boolean);
+
+        if(body.length<3){
+          const segments=normalized
+            .split(/,\s+|;\s+|\s+and\s+/i)
+            .map((x:string)=>x.trim())
+            .filter((x:string)=>x.length>=12);
+
+          if(segments.length>=3) body=segments.slice(0,3);
+        }
       }else{
         continue;
       }
@@ -45,11 +58,23 @@ function extractJson(text:string):AiScript|null{
         continue;
       }
 
-      return {
+      const result={
         hook:parsed.hook.trim(),
-        body:body.slice(0,5),
+        body:body.slice(0,3),
         cta:parsed.cta.trim()
       };
+
+      const wordCount=[result.hook,...result.body,result.cta]
+        .join(" ")
+        .split(/\s+/)
+        .filter(Boolean).length;
+
+      if(wordCount>85){
+        console.warn(`[ai] Ollama script too long: ${wordCount} words.`);
+        continue;
+      }
+
+      return result;
     }catch{
       // Try the next candidate.
     }
