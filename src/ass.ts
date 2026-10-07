@@ -32,7 +32,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Shorts,Arial,72,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,5,2,5,80,80,500,1
+Style: Shorts,Arial,72,&H00FFFFFF,&H00FFFF00,&H00111111,&HCC000000,-1,0,0,0,100,100,0,0,1,5,2,5,80,80,500,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -40,7 +40,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
   const events = captions
     .map((caption) => {
-      const text = caption.text
+      const text = `{\\fad(90,70)\\t(0,180,\\fscx108\\fscy108)\\t(180,320,\\fscx100\\fscy100)}${caption.text}
         .replace(/\r?\n/g, " ")
         .replace(/\{/g, "\\{")
         .replace(/\}/g, "\\}");
