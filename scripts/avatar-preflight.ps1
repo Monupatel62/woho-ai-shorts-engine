@@ -4,6 +4,9 @@ $AI = "E:\\AI-Shorts"
 $Root = Join-Path $AI "avatar\\MuseTalk"
 $Python = Join-Path $AI "avatar\\musetalk-venv\\Scripts\\python.exe"
 $Source = Join-Path $AI "avatars\\presenter.mp4"
+$RawSource = Join-Path $AI "avatars\\presenter-original.mp4"
+$Background = Join-Path $AI "avatars\\wohoTech-presenter-background.png"
+$BackgroundPython = Join-Path $AI "avatar\\background-venv\\Scripts\\python.exe"
 $Inference = Join-Path $Root "scripts\\inference.py"
 $Model = Join-Path $Root "models\\musetalkV15\\unet.pth"
 $ModelConfig = Join-Path $Root "models\\musetalkV15\\musetalk.json"
@@ -19,7 +22,10 @@ Write-Host "=== WoHo AI Advanced Avatar Preflight ===" -ForegroundColor Cyan
 Write-Host ""
 
 $checks = @(
-    @("Presenter video", $Source),
+    @("Prepared presenter video", $Source),
+    @("Raw presenter video", $RawSource),
+    @("WoHoTech background", $Background),
+    @("Background Python", $BackgroundPython),
     @("MuseTalk root", $Root),
     @("MuseTalk Python", $Python),
     @("MuseTalk inference", $Inference),
