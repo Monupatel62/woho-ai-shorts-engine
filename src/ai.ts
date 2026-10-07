@@ -8,26 +8,35 @@ const OLLAMA_PORT=Number(process.env.OLLAMA_PORT??"11434");
 const OLLAMA_TIMEOUT_MS=120000;
 
 function extractJson(text:string):AiScript|null{
-  const match=text.match(/\{[\s\S]*\}/);
-  if(!match)return null;
-  try{
-    const parsed=JSON.parse(match[0]) as Partial<AiScript>;
-    if(
-      typeof parsed.hook!=="string"||
-      !Array.isArray(parsed.body)||
-      parsed.body.some(x=>typeof x!=="string")||
-      typeof parsed.cta!=="string"
-    )return null;
+  const clean=text.trim();
 
-    const hook=parsed.hook.trim();
-    const body=parsed.body.map(x=>x.trim()).filter(Boolean).slice(0,5);
-    const cta=parsed.cta.trim();
+  const candidates:string[]=[clean];
+  const match=clean.match(/\{[\s\S]*\}/);
+  if(match && match[0]!==clean)candidates.push(match[0]);
 
-    if(!hook||body.length<3||!cta)return null;
-    return {hook,body,cta};
-  }catch{
-    return null;
+  for(const candidate of candidates){
+    try{
+      const parsed=JSON.parse(candidate) as Partial<AiScript>;
+      if(
+        typeof parsed.hook!=="string"||
+        !Array.isArray(parsed.body)||
+        parsed.body.some(x=>typeof x!=="string")||
+        typeof parsed.cta!=="string"
+      )continue;
+
+      const hook=parsed.hook.trim();
+      const body=parsed.body.map(x=>x.trim()).filter(Boolean).slice(0,5);
+      const cta=parsed.cta.trim();
+
+      if(!hook||body.length<3||!cta)continue;
+      return {hook,body,cta};
+    }catch{
+      // Try the next candidate.
+    }
   }
+
+  console.warn(`[ai] Invalid Ollama payload: ${clean.slice(0,500)}`);
+  return null;
 }
 
 function callOllama(prompt:string):Promise<string>{
