@@ -119,7 +119,7 @@ export async function generateAiScript(topic:string,researchContext=""):Promise<
     "hook must be one strong opening sentence.",
     "body must contain exactly 3 concise useful points.",
     "cta must be one short natural call to action.",
-    "Keep the spoken script suitable for about 15-35 seconds.",
+    "Keep the ENTIRE spoken script between 55 and 75 words total, targeting about 20-30 seconds.",
     "Do not use markdown, emojis, fake claims, or stage directions.",
     "Use plain strings only.",
     `Topic: ${topic}`,
