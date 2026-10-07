@@ -7,7 +7,8 @@
     "start":"tsx src/index.ts",
     "short":"tsx src/index.ts --topic",
     "batch":"tsx src/index.ts --topics",
-    "typecheck":"tsc --noEmit"
+    "typecheck":"tsc --noEmit",
+    "avatar:preflight":"powershell -ExecutionPolicy Bypass -File .\\scripts\\avatar-preflight.ps1"
   },
   "keywords":["youtube","shorts","video","automation","local-ai"],
   "author":"WoHoTech",
