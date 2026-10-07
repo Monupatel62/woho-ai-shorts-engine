@@ -67,6 +67,45 @@ export function getAvatarConfig(): AvatarConfig {
   };
 }
 
+async function preparePresenterSource(config: AvatarConfig): Promise<string> {
+  const rawSource = process.env.AVATAR_RAW_SOURCE;
+  const background = process.env.AVATAR_BACKGROUND;
+  const enabled = envBool("AVATAR_PREPARE", true);
+  if (!enabled || !rawSource || !background) return config.sourceVideo;
+
+  const prepared = config.sourceVideo;
+  if (await exists(prepared)) return prepared;
+
+  if (!(await exists(rawSource))) {
+    throw new Error(`Missing raw presenter source: ${rawSource}`);
+  }
+  if (!(await exists(background))) {
+    throw new Error(`Missing WoHoTech background: ${background}`);
+  }
+
+  const bgPython =
+    process.env.AVATAR_BACKGROUND_PYTHON ??
+    path.join(AI_ROOT, "avatar", "background-venv", "Scripts", "python.exe");
+  const script = path.join(process.cwd(), "scripts", "prepare_presenter.py");
+  if (!(await exists(bgPython))) {
+    throw new Error(`Missing background Python: ${bgPython}. Run npm run avatar:install-background.`);
+  }
+  if (!(await exists(script))) {
+    throw new Error(`Missing presenter preparation script: ${script}`);
+  }
+
+  await mkdir(path.dirname(prepared), { recursive: true });
+  console.log("[avatar] preparing presenter: background removal + WoHoTech background");
+  await runCommand(bgPython, [
+    script,
+    "--input", rawSource,
+    "--background", background,
+    "--output", prepared,
+    "--ffmpeg", path.join(config.ffmpegPath, "ffmpeg.exe")
+  ]);
+  return prepared;
+}
+
 async function exists(filePath: string): Promise<boolean> {
   try {
     await access(filePath);
@@ -173,8 +212,10 @@ export async function prepareAvatar(options: {
     };
   }
 
+  const preparedSource = await preparePresenterSource(config);
+
   const required = [
-    [config.sourceVideo, "presenter source video"],
+    [preparedSource, "prepared presenter source video"],
     [config.python, "MuseTalk Python"],
     [path.join(config.museTalkRoot, "scripts", "inference.py"), "MuseTalk inference"],
     [path.join(config.museTalkRoot, "models", "musetalkV15", "unet.pth"), "MuseTalk 1.5 model"]
@@ -203,7 +244,7 @@ export async function prepareAvatar(options: {
   if (config.tracking) {
     await runTracking(
       config,
-      config.sourceVideo,
+      preparedSource,
       options.audioPath,
       trackingPath
     );
@@ -211,7 +252,7 @@ export async function prepareAvatar(options: {
 
   await writeInferenceConfig(
     inferenceConfig,
-    config.sourceVideo,
+    preparedSource,
     options.audioPath
   );
 
