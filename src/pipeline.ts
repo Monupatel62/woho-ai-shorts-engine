@@ -72,7 +72,7 @@ export class ShortsPipeline {
           console.log(`[captions] ASS: ${assPath}`);
         }else if(stage==="video"){
           if(!audioPath||audioDuration<=0)throw new Error("Video stage requires generated audio.");
-          const scenes=await buildScenePlan(audioDuration,job.topic);
+          const scenes=await buildScenePlan(audioDuration);
           const result=await generateVideo({
             audioPath,captionPath:assPath??captionPath??undefined,
             outputName:`${job.id}.mp4`,title:job.topic,scenes
