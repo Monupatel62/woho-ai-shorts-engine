@@ -52,7 +52,11 @@ Then set:
 
 `AVATAR_MODE=musetalk`
 
-Run:
+First install the local tracking runtime:
+
+`powershell -ExecutionPolicy Bypass -File .\\scripts\\install-avatar-tracking.ps1`
+
+Then run the preflight:
 
 `powershell -ExecutionPolicy Bypass -File .\\scripts\\avatar-preflight.ps1`
 
