@@ -9,8 +9,9 @@ import { validateShort } from "./validate.ts";
 import { researchTopic } from "./research.ts";
 import { qualityGate } from "./quality.ts";
 import { uploadShort } from "./youtube.ts";
+import { prepareAvatar } from "./avatar.ts";
 
-export type PipelineStage = "research"|"script"|"voice"|"captions"|"video"|"youtube";
+export type PipelineStage = "research"|"script"|"voice"|"avatar"|"captions"|"video"|"youtube";
 export interface PipelineJob {
   id:string; topic:string; stages:PipelineStage[];
   status:"pending"|"running"|"completed"|"failed";
@@ -28,6 +29,8 @@ export class ShortsPipeline {
     let captionPath:string|null=null;
     let assPath:string|null=null;
     let videoPath:string|null=null;
+    let avatarPath:string|null=null;
+    let avatarTrackingPath:string|null=null;
     let audioDuration=0;
 
     try{
@@ -52,6 +55,20 @@ export class ShortsPipeline {
           audioPath=result.audioPath;
           audioDuration=await getMediaDuration(audioPath);
           console.log(`[voice] duration: ${audioDuration.toFixed(3)} seconds`);
+        }else if(stage==="avatar"){
+          if(!audioPath)throw new Error("Avatar stage requires generated audio.");
+          const avatar=await prepareAvatar({
+            audioPath,
+            outputName:`${job.id}.mp4`
+          });
+          if(avatar.status==="failed"){
+            throw new Error(`Avatar preparation failed: ${avatar.reason ?? "unknown error"}`);
+          }
+          avatarPath=avatar.videoPath;
+          avatarTrackingPath=avatar.trackingPath;
+          console.log(`[avatar] status: ${avatar.status}`);
+          if(avatarPath)console.log(`[avatar] video: ${avatarPath}`);
+          if(avatarTrackingPath)console.log(`[avatar] tracking: ${avatarTrackingPath}`);
         }else if(stage==="captions"){
           if(!generatedScript||!audioPath||audioDuration<=0)throw new Error("Captions stage prerequisites are missing.");
           const sentences=[generatedScript.hook,...generatedScript.body,generatedScript.cta];
@@ -75,7 +92,7 @@ export class ShortsPipeline {
           const scenes=await buildScenePlan(audioDuration);
           const result=await generateVideo({
             audioPath,captionPath:assPath??captionPath??undefined,
-            outputName:`${job.id}.mp4`,title:job.topic,scenes
+            outputName:`${job.id}.mp4`,title:job.topic,scenes,avatarPath:avatarPath??undefined
           });
           if(result.status!=="completed"||!result.videoPath)throw new Error("Video generation failed.");
           videoPath=result.videoPath;
