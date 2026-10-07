@@ -88,7 +88,7 @@ function escapeDrawtext(
 function buildAnimatedBackgroundFilter(title: string): string {
   const safeTitle=escapeDrawtext(title);
   const keywords=title
-    .split(/\\s+/)
+    .split(/\s+/)
     .map((word)=>word.replace(/[^a-zA-Z0-9]/g,""))
     .filter((word)=>word.length>=3)
     .slice(0,4);
