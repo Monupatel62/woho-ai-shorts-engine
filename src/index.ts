@@ -7,10 +7,10 @@ async function loadProjectEnv(): Promise<void> {
   const envPath = path.join(process.cwd(), "config", ".env");
   try {
     const raw = await readFile(envPath, "utf8");
-    for (const line of raw.split(/\\r?\\n/)) {
+    for (const line of raw.split(/\r?\n/)) {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith("#")) continue;
-      const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*(.*)$/);
+      const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
       if (!match) continue;
       const key = match[1];
       let value = match[2].trim();
