@@ -11,17 +11,13 @@ async function getTopics():Promise<string[]>{
   if(topics)return topics.split("|").map(x=>x.trim()).filter(Boolean);
   const topic=getArg("--topic");
   if(topic)return [topic];
-  if(process.argv.includes("--auto")) return chooseTopics([]);\n  return ["AI tools students should know"];
+  if(process.argv.includes("--auto"))return chooseTopics([]);
+  return ["AI tools students should know"];
 }
 
 function createJob(topic:string,index:number):PipelineJob{
   const slug=topic.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40)||"topic";
-  return {
-    id:`short-${Date.now()}-${index+1}-${slug}`,
-    topic,
-    stages:["research","script","voice","captions","video","youtube"],
-    status:"pending"
-  };
+  return {id:`short-${Date.now()}-${index+1}-${slug}`,topic,stages:["research","script","voice","captions","video","youtube"],status:"pending"};
 }
 
 async function main():Promise<void>{
@@ -36,7 +32,4 @@ async function main():Promise<void>{
   console.log("\n=== ALL SHORTS COMPLETED ===");
 }
 
-main().catch(error=>{
-  console.error("Engine failed:",error);
-  process.exitCode=1;
-});
+main().catch(error=>{console.error("Engine failed:",error);process.exitCode=1;});
