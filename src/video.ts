@@ -85,31 +85,30 @@ function escapeDrawtext(
     .replace(/%/g, "\\%");
 }
 
-function buildAnimatedBackgroundFilter(
-  title: string
-): string {
-  const safeTitle =
-    escapeDrawtext(title);
+function buildAnimatedBackgroundFilter(title: string): string {
+  const safeTitle=escapeDrawtext(title);
+  const keywords=title
+    .split(/\\s+/)
+    .map((word)=>word.replace(/[^a-zA-Z0-9]/g,""))
+    .filter((word)=>word.length>=3)
+    .slice(0,4);
+
+  const keywordText=keywords.length>0 ? keywords.join("  •  ") : "WOHO SHORTS";
+  const safeKeywords=escapeDrawtext(keywordText);
 
   return [
     "drawbox=x='-300+mod(t*120,1600)':y='180+80*sin(t)':w=520:h=520:color=0x2563eb@0.18:t=fill",
-
     "drawbox=x='850-mod(t*90,1300)':y='650+120*cos(t*0.8)':w=620:h=620:color=0x7c3aed@0.16:t=fill",
-
     "drawbox=x='200+100*sin(t*0.7)':y='1300-mod(t*110,500)':w=480:h=480:color=0x06b6d4@0.15:t=fill",
-
     "drawbox=x='650+140*cos(t*0.5)':y='1450+80*sin(t*0.9)':w=360:h=360:color=0xec4899@0.12:t=fill",
-
     "drawbox=x='40+80*sin(t)':y='40':w=1000:h=8:color=0xffffff@0.08:t=fill",
-
     "drawbox=x='40':y='1870':w=1000:h=8:color=0xffffff@0.08:t=fill",
-
-    `drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='${safeTitle}':fontcolor=white@0.18:fontsize=38:x=(w-text_w)/2:y=120`,
-
+    `drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='${safeTitle}':fontcolor=white@0.92:fontsize=54:x=(w-text_w)/2:y=230:box=1:boxcolor=0x000000@0.28:boxborderw=18`,
+    `drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='${safeKeywords}':fontcolor=0xFFFFFF@0.72:fontsize=34:x=(w-text_w)/2:y=330`,
+    "drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='WOHO AI SHORTS':fontcolor=white@0.42:fontsize=28:x=(w-text_w)/2:y=1780",
     "format=yuv420p"
   ].join(",");
 }
-
 async function renderGeneratedScene(
   scene: Scene,
   outputPath: string,
