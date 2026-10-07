@@ -123,7 +123,6 @@ export async function discoverMediaAssets(): Promise<MediaAsset[]> {
 
   for (const directory of MEDIA_DIRS) {
     let files: string[] = [];
-
     try {
       files = await readdir(directory);
     } catch {
@@ -131,46 +130,29 @@ export async function discoverMediaAssets(): Promise<MediaAsset[]> {
     }
 
     for (const file of files) {
+      if (/^short-.*\.mp4$/i.test(file) || /-scene-\d+\.mp4$/i.test(file) || /-base\.mp4$/i.test(file) || /-captioned\.mp4$/i.test(file)) {
+        console.log(`[media] ignored engine output: ${file}`);
+        continue;
+      }
+
       const filePath = path.join(directory, file);
       const extension = path.extname(file).toLowerCase();
 
-      if (
-        [".jpg", ".jpeg", ".png", ".webp"].includes(extension)
-      ) {
-        assets.push({
-          path: filePath,
-          type: "image"
-        });
-      }
-
-      if (
-        [".mp4", ".mov", ".webm", ".mkv"].includes(extension)
-      ) {
+      if ([".jpg", ".jpeg", ".png", ".webp"].includes(extension)) {
+        assets.push({ path: filePath, type: "image" });
+      } else if ([".mp4", ".mov", ".webm", ".mkv"].includes(extension)) {
         try {
-          const duration =
-            await getMediaDuration(filePath);
-
-          assets.push({
-            path: filePath,
-            type: "video",
-            duration
-          });
+          assets.push({ path: filePath, type: "video", duration: await getMediaDuration(filePath) });
         } catch {
-          console.warn(
-            `[media] unable to read duration: ${filePath}`
-          );
+          console.warn(`[media] unable to read duration: ${filePath}`);
         }
       }
     }
   }
 
-  console.log(
-    `[media] discovered ${assets.length} local assets`
-  );
-
+  console.log(`[media] discovered ${assets.length} reusable local assets`);
   return assets;
 }
-
 export async function buildScenePlan(
   totalDuration: number
 ): Promise<Scene[]> {
