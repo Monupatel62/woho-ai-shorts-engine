@@ -6,8 +6,11 @@ import { generateVideo } from "./video.ts";
 import { getMediaDuration, buildScenePlan } from "./media.ts";
 import { generateMetadata } from "./metadata.ts";
 import { validateShort } from "./validate.ts";
+import { researchTopic } from "./research.ts";
+import { qualityGate } from "./quality.ts";
+import { uploadShort } from "./youtube.ts";
 
-export type PipelineStage = "script"|"voice"|"captions"|"video"|"youtube";
+export type PipelineStage = "research"|"script"|"voice"|"captions"|"video"|"youtube";
 export interface PipelineJob {
   id:string; topic:string; stages:PipelineStage[];
   status:"pending"|"running"|"completed"|"failed";
@@ -20,6 +23,7 @@ export class ShortsPipeline {
     console.log(`Topic: ${job.topic}`);
 
     let generatedScript:ShortScript|undefined;
+    let researchSummary="";
     let audioPath:string|null=null;
     let captionPath:string|null=null;
     let assPath:string|null=null;
@@ -28,8 +32,13 @@ export class ShortsPipeline {
 
     try{
       for(const stage of job.stages){
+        if(stage==="research"){
+          const research=await researchTopic(job.topic);
+          researchSummary=research.summary;
+          console.log(`[research] sources: ${research.sources.length}`);
+        }else 
         if(stage==="script"){
-          generatedScript=await createScript(job.topic);
+          generatedScript=await createScript(job.topic,researchSummary);
           console.log("\n[script] completed");
           console.log(`Source: ${generatedScript.source}`);
           console.log(`Hook: ${generatedScript.hook}`);
@@ -79,6 +88,18 @@ export class ShortsPipeline {
           const validation=await validateShort(videoPath);
           console.log(`[validate] ${validation.valid?"PASS":"FAIL"} | ${validation.width}x${validation.height} | ${validation.videoCodec}/${validation.audioCodec} | ${validation.fps.toFixed(2)}fps | ${validation.duration.toFixed(2)}s`);
           if(!validation.valid)throw new Error(`Final Shorts validation failed: ${validation.reason}`);
+          const scriptText=[generatedScript.hook,...generatedScript.body,generatedScript.cta].join(" ");
+          const quality=await qualityGate(videoPath,scriptText);
+          console.log(`[quality] ${quality.passed?"PASS":"FAIL"} | score=${quality.score}`);
+          if(!quality.passed)throw new Error(`Quality gate failed: ${quality.reasons.join(" ")}`);
+          if(process.env.YOUTUBE_REFRESH_TOKEN && process.env.YOUTUBE_CLIENT_ID && process.env.YOUTUBE_CLIENT_SECRET){
+            const raw=await import("node:fs/promises").then(m=>m.readFile(metadataPath,"utf8"));
+            const metadata=JSON.parse(raw) as {title:string;description:string;tags:string[]};
+            const videoId=await uploadShort(videoPath,{title:metadata.title,description:metadata.description,tags:metadata.tags,privacyStatus:(process.env.YOUTUBE_PRIVACY as "private"|"public"|"unlisted"|undefined)??"private"});
+            console.log(`[youtube] uploaded: ${videoId}`);
+          }else{
+            console.log("[youtube] OAuth not configured; upload skipped safely.");
+          }
           console.log("[youtube] ready");
         }
       }
