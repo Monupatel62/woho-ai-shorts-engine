@@ -1,16 +1,17 @@
 import { ShortsPipeline, type PipelineJob } from "./pipeline.ts";
+import { chooseTopics } from "./topics.ts";
 
 function getArg(name:string):string|undefined{
   const index=process.argv.indexOf(name);
   return index>=0?process.argv[index+1]:undefined;
 }
 
-function getTopics():string[]{
+async function getTopics():Promise<string[]>{
   const topics=getArg("--topics");
   if(topics)return topics.split("|").map(x=>x.trim()).filter(Boolean);
   const topic=getArg("--topic");
   if(topic)return [topic];
-  return ["AI tools students should know"];
+  if(process.argv.includes("--auto")) return chooseTopics([]);\n  return ["AI tools students should know"];
 }
 
 function createJob(topic:string,index:number):PipelineJob{
