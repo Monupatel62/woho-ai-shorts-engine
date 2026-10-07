@@ -94,7 +94,7 @@ export async function generateAiScript(topic:string,researchContext=""):Promise<
     "Do not use markdown, emojis, fake claims, or stage directions.",
     "Use plain strings only.",
     `Topic: ${topic}`,
-    researchContext?\`Research context:\\n${researchContext}\`:""
+    researchContext?`Research context:\n${researchContext}`:""
   ].join("\n");
 
   try{
