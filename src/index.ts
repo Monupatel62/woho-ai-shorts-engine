@@ -17,7 +17,7 @@ async function loadProjectEnv(): Promise<void> {
       if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
         value = value.slice(1, -1);
       }
-      if (!(key in process.env)) process.env[key] = value;
+      process.env[key] = value;
     }
     console.log(`[env] loaded: ${envPath}`);
   } catch {
