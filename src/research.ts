@@ -7,15 +7,15 @@ export interface ResearchResult {
   keywords: string[];
 }
 
-function get(url:string):Promise<string>{
+function get(url:string, timeoutMs=8000):Promise<string>{
   return new Promise((resolve,reject)=>{
-    const req=request(url,{headers:{"User-Agent":"WoHo-AI-Shorts-Engine/1.1"}},res=>{
+    const req=request(url,{headers:{"User-Agent":"WoHo-AI-Shorts-Engine/1.2","Accept":"application/rss+xml, application/xml, text/xml, */*"}},res=>{
       let data="";
       res.setEncoding("utf8");
       res.on("data",d=>data+=d);
       res.on("end",()=>res.statusCode&&res.statusCode>=200&&res.statusCode<300?resolve(data):reject(new Error(`HTTP ${res.statusCode}`)));
     });
-    req.on("error",reject); req.setTimeout(15000,()=>req.destroy(new Error("Research timeout")));
+    req.on("error",reject); req.setTimeout(timeoutMs,()=>req.destroy(new Error("Research timeout")));
   });
 }
 
