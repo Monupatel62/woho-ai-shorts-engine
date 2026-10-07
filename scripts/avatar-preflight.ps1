@@ -6,6 +6,11 @@ $Python = Join-Path $AI "avatar\\musetalk-venv\\Scripts\\python.exe"
 $Source = Join-Path $AI "avatars\\presenter.mp4"
 $Inference = Join-Path $Root "scripts\\inference.py"
 $Model = Join-Path $Root "models\\musetalkV15\\unet.pth"
+$ModelConfig = Join-Path $Root "models\\musetalkV15\\musetalk.json"
+$Whisper = Join-Path $Root "models\\whisper\\pytorch_model.bin"
+$Vae = Join-Path $Root "models\\sd-vae\\diffusion_pytorch_model.bin"
+$DWPose = Join-Path $Root "models\\dwpose\\dw-ll_ucoco_384.pth"
+$FaceParse = Join-Path $Root "models\\face-parse-bisent\\79999_iter.pth"
 $Tracker = Join-Path (Get-Location) "scripts\\avatar_track.py"
 $TrackerPython = Join-Path $AI "avatar\\tracking-venv\\Scripts\\python.exe"
 
@@ -19,6 +24,11 @@ $checks = @(
     @("MuseTalk Python", $Python),
     @("MuseTalk inference", $Inference),
     @("MuseTalk 1.5 model", $Model),
+    @("MuseTalk model config", $ModelConfig),
+    @("Whisper model", $Whisper),
+    @("SD-VAE model", $Vae),
+    @("DWPose model", $DWPose),
+    @("Face parser model", $FaceParse),
     @("Avatar tracker", $Tracker),
     @("Avatar tracking Python", $TrackerPython),
     @("FFmpeg", (Join-Path $AI "ffmpeg\\bin\\ffmpeg.exe"))
@@ -36,6 +46,14 @@ foreach ($check in $checks) {
 }
 
 Write-Host ""
+if (-not $failed) {
+    $pyVersion = & $Python -c "import sys; print(sys.version_info.major, sys.version_info.minor)"
+    if ($LASTEXITCODE -ne 0 -or $pyVersion -notmatch "^3 10$") {
+        Write-Host ("[MISSING] MuseTalk Python must be 3.10, found: {0}" -f $pyVersion) -ForegroundColor Yellow
+        $failed = $true
+    }
+}
+
 if (-not $failed) {
     try {
         & $TrackerPython -c "import mediapipe, cv2, numpy; print(\"MediaPipe=\" + mediapipe.__version__); print(\"OpenCV=\" + cv2.__version__); print(\"NumPy=\" + numpy.__version__)"
