@@ -1,17 +1,20 @@
 {
-  "name": "shorts-engine",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name":"shorts-engine",
+  "version":"1.1.0",
+  "description":"Local automated YouTube Shorts generation engine",
+  "type":"module",
+  "scripts":{
+    "start":"tsx src/index.ts",
+    "short":"tsx src/index.ts --topic",
+    "batch":"tsx src/index.ts --topics",
+    "typecheck":"tsc --noEmit"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^26.6.4",
-    "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+  "keywords":["youtube","shorts","video","automation","local-ai"],
+  "author":"WoHoTech",
+  "license":"ISC",
+  "devDependencies":{
+    "@types/node":"^26.6.4",
+    "tsx":"^4.23.15",
+    "typescript":"^7.0.2"
   }
 }
