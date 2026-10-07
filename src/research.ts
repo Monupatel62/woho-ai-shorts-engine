@@ -71,19 +71,16 @@ export async function researchTopic(topic: string): Promise<ResearchResult> {
     `https://www.bing.com/news/search?q=${query}&format=rss&setlang=en-IN`
   ];
 
-  let xml = "";
-  let lastError: unknown;
-
-  for (const url of urls) {
-    try {
-      xml = await get(url);
-      if (xml) break;
-    } catch (error) {
-      lastError = error;
-    }
-  }
+  const results = await Promise.allSettled(urls.map((url) => get(url)));
+  const successful = results.find(
+    (result): result is PromiseFulfilledResult<string> =>
+      result.status === "fulfilled" && Boolean(result.value)
+  );
+  const xml = successful?.value ?? "";
 
   if (!xml) {
+    const failure = results.find((result) => result.status === "rejected");
+    const lastError = failure && failure.status === "rejected" ? failure.reason : null;
     console.warn(
       `[research] unavailable: ${lastError instanceof Error ? lastError.message : "all RSS sources failed"}`
     );
