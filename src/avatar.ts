@@ -137,11 +137,8 @@ async function runTracking(
 
 async function findGeneratedAvatar(
   resultDir: string,
-  sourceVideo: string,
-  audioPath: string
+  outputName: string
 ): Promise<string | null> {
-  const inputBase = path.basename(sourceVideo).split(".")[0];
-  const audioBase = path.basename(audioPath).split(".")[0];
   const expected = path.join(
     resultDir,
     "v15",
@@ -252,8 +249,6 @@ export async function prepareAvatar(options: {
     await runCommand(config.python, args, config.museTalkRoot);
     const generated = await findGeneratedAvatar(
       config.resultDir,
-      config.sourceVideo,
-      options.audioPath,
       `${path.parse(options.outputName).name}.mp4`
     );
 
