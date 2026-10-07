@@ -19,13 +19,13 @@ function createJob(topic:string,index:number):PipelineJob{
   return {
     id:`short-${Date.now()}-${index+1}-${slug}`,
     topic,
-    stages:["script","voice","captions","video","youtube"],
+    stages:["research","script","voice","captions","video","youtube"],
     status:"pending"
   };
 }
 
 async function main():Promise<void>{
-  const topics=getTopics();
+  const topics=await getTopics();
   const pipeline=new ShortsPipeline();
   console.log("\n=== WoHo AI Shorts Engine ===");
   console.log(`Batch size: ${topics.length}`);
