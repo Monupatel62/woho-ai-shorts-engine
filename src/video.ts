@@ -10,6 +10,7 @@ export interface VideoOptions {
   outputName?: string;
   title?: string;
   scenes?: Scene[];
+  avatarPath?: string;
 }
 
 export interface VideoResult {
@@ -299,6 +300,30 @@ async function renderScene(
   );
 }
 
+
+async function renderAvatarScene(
+  avatarPath: string,
+  outputPath: string
+): Promise<void> {
+  await runFfmpeg([
+    "-y",
+    "-i",
+    avatarPath,
+    "-vf",
+    "scale=1152:2048:force_original_aspect_ratio=increase,crop=1080:1920:x='(iw-1080)/2+18*sin(t*0.55)':y='(ih-1920)/2+12*cos(t*0.43)',fps=30,format=yuv420p",
+    "-an",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "veryfast",
+    "-crf",
+    "22",
+    "-pix_fmt",
+    "yuv420p",
+    outputPath
+  ]);
+}
+
 async function joinScenes(
   scenePaths: string[],
   outputPath: string
@@ -403,115 +428,69 @@ export async function generateVideo(
     `Output: ${outputPath}`
   );
 
+  if (options.avatarPath) {
+    console.log(`Avatar: ${options.avatarPath}`);
+    console.log("Avatar Layer: tracked presenter + audio-driven face");
+  }
+
   try {
-    const scenes =
-      options.scenes ?? [];
-
-    if (scenes.length === 0) {
-      console.log(
-        "[scene-engine] no scene plan supplied"
-      );
-
-      await runFfmpeg([
-        "-y",
-
-        "-f",
-        "lavfi",
-
-        "-i",
-        "color=c=0x080d1a:s=1080x1920:r=30",
-
-        "-i",
-        options.audioPath,
-
-        "-map",
-        "0:v:0",
-
-        "-map",
-        "1:a:0",
-
-        "-vf",
-        buildAnimatedBackgroundFilter(
-          title
-        ),
-
-        "-c:v",
-        "libx264",
-
-        "-preset",
-        "veryfast",
-
-        "-crf",
-        "23",
-
-        "-c:a",
-        "aac",
-
-        "-b:a",
-        "128k",
-
-        "-pix_fmt",
-        "yuv420p",
-
-        "-shortest",
-
-        basePath
-      ]);
+    if (options.avatarPath) {
+      console.log("[avatar-engine] using tracked presenter video");
+      await renderAvatarScene(options.avatarPath, basePath);
     } else {
-      console.log(
-        `[scene-engine] rendering ${scenes.length} scenes`
-      );
+      const scenes = options.scenes ?? [];
 
-      const scenePaths: string[] = [];
+      if (scenes.length === 0) {
+        console.log(
+          "[scene-engine] no scene plan supplied"
+        );
 
-      for (
-        let index = 0;
-        index < scenes.length;
-        index++
-      ) {
-        const scene =
-          scenes[index];
+        await runFfmpeg([
+          "-y",
+          "-f",
+          "lavfi",
+          "-i",
+          "color=c=0x080d1a:s=1080x1920:r=30",
+          "-vf",
+          buildAnimatedBackgroundFilter(title),
+          "-an",
+          "-c:v",
+          "libx264",
+          "-preset",
+          "veryfast",
+          "-crf",
+          "23",
+          "-pix_fmt",
+          "yuv420p",
+          basePath
+        ]);
+      } else {
+        console.log(
+          `[scene-engine] rendering ${scenes.length} scenes`
+        );
 
-        const scenePath =
-          path.join(
+        const scenePaths: string[] = [];
+
+        for (let index = 0; index < scenes.length; index++) {
+          const scene = scenes[index];
+          const scenePath = path.join(
             VIDEO_DIR,
             `${path.parse(outputName).name}-scene-${String(index + 1).padStart(2, "0")}.mp4`
           );
 
-        console.log(
-          `[scene-engine] ${scene.id}`
-        );
+          console.log(`[scene-engine] ${scene.id}`);
+          console.log(`  duration: ${scene.duration.toFixed(2)}s`);
+          console.log(`  motion: ${scene.motion}`);
+          console.log(
+            `  asset: ${scene.asset?.path ?? "generated background"}`
+          );
 
-        console.log(
-          `  duration: ${scene.duration.toFixed(2)}s`
-        );
+          await renderScene(scene, scenePath, title);
+          scenePaths.push(scenePath);
+        }
 
-        console.log(
-          `  motion: ${scene.motion}`
-        );
-
-        console.log(
-          `  asset: ${
-            scene.asset?.path ??
-            "generated background"
-          }`
-        );
-
-        await renderScene(
-          scene,
-          scenePath,
-          title
-        );
-
-        scenePaths.push(
-          scenePath
-        );
+        await joinScenes(scenePaths, basePath);
       }
-
-      await joinScenes(
-        scenePaths,
-        basePath
-      );
     }
 
     if (!options.captionPath) {
