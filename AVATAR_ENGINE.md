@@ -54,6 +54,12 @@ Then set:
 
 First install the local tracking runtime:
 
+`powershell -ExecutionPolicy Bypass -File .\\scripts\\install-musetalk.ps1`
+
+The MuseTalk installer requires Python 3.10. It installs MuseTalk 1.5, its required MMLab stack, and downloads the complete model tree. MuseTalk officially recommends Python 3.10 and documents the Windows weight-download flow.
+
+Then install the local tracking runtime:
+
 `powershell -ExecutionPolicy Bypass -File .\\scripts\\install-avatar-tracking.ps1`
 
 Then run the preflight:
