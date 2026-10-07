@@ -66,7 +66,7 @@ export async function generateAiScript(topic: string, researchContext = ""): Pro
     "cta must be one short natural call to action.",
     "Keep the spoken script suitable for about 15-35 seconds.",
     "Do not use markdown, emojis, fake claims, or stage directions.",
-    `Topic: ${topic}`,\n    researchContext ? `Research context:\\n${researchContext}` : ""
+    `Topic: ${topic}`,\n    researchContext ? `Research context:\n${researchContext}` : ""
   ].join("\n");
   try {
     return extractJson(await callOllama(prompt));
