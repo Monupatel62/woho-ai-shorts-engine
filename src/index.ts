@@ -45,6 +45,7 @@ function createJob(topic:string,index:number):PipelineJob{
 }
 
 async function main():Promise<void>{
+  await loadProjectEnv();
   const topics=await getTopics();
   const pipeline=new ShortsPipeline();
   console.log("\n=== WoHo AI Shorts Engine ===");
