@@ -57,7 +57,7 @@ function callOllama(prompt: string): Promise<string> {
   });
 }
 
-export async function generateAiScript(topic: string): Promise<AiScript | null> {
+export async function generateAiScript(topic: string, researchContext = ""): Promise<AiScript | null> {
   const prompt = [
     "Create a high-retention YouTube Short script.",
     "Return JSON only with exactly: hook, body, cta.",
@@ -66,7 +66,7 @@ export async function generateAiScript(topic: string): Promise<AiScript | null> 
     "cta must be one short natural call to action.",
     "Keep the spoken script suitable for about 15-35 seconds.",
     "Do not use markdown, emojis, fake claims, or stage directions.",
-    `Topic: ${topic}`
+    `Topic: ${topic}`,\n    researchContext ? `Research context:\\n${researchContext}` : ""
   ].join("\n");
   try {
     return extractJson(await callOllama(prompt));
