@@ -15,18 +15,29 @@ function extractJson(text:string):AiScript|null{
 
   for(const candidate of candidates){
     try{
-      const parsed=JSON.parse(candidate) as Partial<AiScript> & {body?:unknown};
+      const parsed=JSON.parse(candidate) as {
+        hook?:unknown;
+        body?:unknown;
+        cta?:unknown;
+      };
 
       if(typeof parsed.hook!=="string"||typeof parsed.cta!=="string")continue;
 
-      let body:string[]=[];
-      if(Array.isArray(parsed.body)){
-        body=parsed.body.filter((x):x is string=>typeof x==="string").map(x=>x.trim()).filter(Boolean);
-      }else if(typeof parsed.body==="string"){
-        body=parsed.body
-          .split(/(?<=[.!?])\s+|\n+/)
-          .map(x=>x.trim())
+      const rawBody=parsed.body;
+      let body:string[];
+
+      if(Array.isArray(rawBody)){
+        body=rawBody
+          .filter((x):x is string=>typeof x==="string")
+          .map((x:string)=>x.trim())
           .filter(Boolean);
+      }else if(typeof rawBody==="string"){
+        body=rawBody
+          .split(/(?<=[.!?])\s+|\n+/)
+          .map((x:string)=>x.trim())
+          .filter(Boolean);
+      }else{
+        continue;
       }
 
       if(body.length<3){
