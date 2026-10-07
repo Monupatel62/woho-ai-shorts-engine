@@ -1,0 +1,10 @@
+node_modules/
+tts-venv/
+*.wav
+*.mp3
+*.mp4
+temp/
+output/
+.env
+*.backup
+*.backup2
