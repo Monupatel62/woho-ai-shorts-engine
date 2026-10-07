@@ -9,27 +9,36 @@ const OLLAMA_TIMEOUT_MS=120000;
 
 function extractJson(text:string):AiScript|null{
   const clean=text.trim();
-
   const candidates:string[]=[clean];
   const match=clean.match(/\{[\s\S]*\}/);
   if(match && match[0]!==clean)candidates.push(match[0]);
 
   for(const candidate of candidates){
     try{
-      const parsed=JSON.parse(candidate) as Partial<AiScript>;
-      if(
-        typeof parsed.hook!=="string"||
-        !Array.isArray(parsed.body)||
-        parsed.body.some(x=>typeof x!=="string")||
-        typeof parsed.cta!=="string"
-      )continue;
+      const parsed=JSON.parse(candidate) as Partial<AiScript> & {body?:unknown};
 
-      const hook=parsed.hook.trim();
-      const body=parsed.body.map(x=>x.trim()).filter(Boolean).slice(0,5);
-      const cta=parsed.cta.trim();
+      if(typeof parsed.hook!=="string"||typeof parsed.cta!=="string")continue;
 
-      if(!hook||body.length<3||!cta)continue;
-      return {hook,body,cta};
+      let body:string[]=[];
+      if(Array.isArray(parsed.body)){
+        body=parsed.body.filter((x):x is string=>typeof x==="string").map(x=>x.trim()).filter(Boolean);
+      }else if(typeof parsed.body==="string"){
+        body=parsed.body
+          .split(/(?<=[.!?])\s+|\n+/)
+          .map(x=>x.trim())
+          .filter(Boolean);
+      }
+
+      if(body.length<3){
+        console.warn("[ai] Ollama returned fewer than 3 usable body points.");
+        continue;
+      }
+
+      return {
+        hook:parsed.hook.trim(),
+        body:body.slice(0,5),
+        cta:parsed.cta.trim()
+      };
     }catch{
       // Try the next candidate.
     }
