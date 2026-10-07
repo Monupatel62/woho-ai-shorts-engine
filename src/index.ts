@@ -1,5 +1,29 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { ShortsPipeline, type PipelineJob } from "./pipeline.ts";
 import { chooseTopics } from "./topics.ts";
+
+async function loadProjectEnv(): Promise<void> {
+  const envPath = path.join(process.cwd(), "config", ".env");
+  try {
+    const raw = await readFile(envPath, "utf8");
+    for (const line of raw.split(/\\r?\\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*(.*)$/);
+      if (!match) continue;
+      const key = match[1];
+      let value = match[2].trim();
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      if (!(key in process.env)) process.env[key] = value;
+    }
+    console.log(`[env] loaded: ${envPath}`);
+  } catch {
+    console.log(`[env] config/.env not found; using process environment`);
+  }
+}
 
 function getArg(name:string):string|undefined{
   const index=process.argv.indexOf(name);
