@@ -22,10 +22,10 @@ function fallbackScript(topic: string): ShortScript {
   };
 }
 
-export async function createScript(topic: string): Promise<ShortScript> {
+export async function createScript(topic: string, researchContext = ""): Promise<ShortScript> {
   const cleanTopic = topic.trim();
   if (!cleanTopic) throw new Error("Topic cannot be empty.");
-  const ai = await generateAiScript(cleanTopic);
+  const ai = await generateAiScript(cleanTopic, researchContext);
   if (!ai || ai.body.length < 3) return fallbackScript(cleanTopic);
   return { topic: cleanTopic, hook: ai.hook, body: ai.body, cta: ai.cta, source: "ollama" };
 }
