@@ -145,7 +145,7 @@ async function findGeneratedAvatar(
   const expected = path.join(
     resultDir,
     "v15",
-    `${inputBase}_${audioBase}.mp4`
+    outputName
   );
   if (await exists(expected)) return expected;
 
@@ -228,6 +228,12 @@ export async function prepareAvatar(options: {
     config.ffmpegPath,
     "--result_dir",
     config.resultDir,
+    "--unet_model_path",
+    path.join(config.museTalkRoot, "models", "musetalkV15", "unet.pth"),
+    "--unet_config",
+    path.join(config.museTalkRoot, "models", "musetalkV15", "musetalk.json"),
+    "--whisper_dir",
+    path.join(config.museTalkRoot, "models", "whisper"),
     "--version",
     "v15",
     "--batch_size",
@@ -235,7 +241,9 @@ export async function prepareAvatar(options: {
     "--extra_margin",
     "10",
     "--parsing_mode",
-    "jaw"
+    "jaw",
+    "--output_vid_name",
+    `${path.parse(options.outputName).name}.mp4`
   ];
 
   if (config.useFloat16) args.push("--use_float16");
@@ -245,7 +253,8 @@ export async function prepareAvatar(options: {
     const generated = await findGeneratedAvatar(
       config.resultDir,
       config.sourceVideo,
-      options.audioPath
+      options.audioPath,
+      `${path.parse(options.outputName).name}.mp4`
     );
 
     if (!generated) {
