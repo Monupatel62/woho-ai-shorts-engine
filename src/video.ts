@@ -18,11 +18,14 @@ export interface VideoResult {
   status: "completed" | "failed";
 }
 
+const AI_ROOT = process.env.AI_ROOT ?? "E:\\AI-Shorts";
 const FFMPEG =
-  "E:\\AI-Shorts\\ffmpeg\\bin\\ffmpeg.exe";
+  process.env.FFMPEG_BIN ??
+  `${AI_ROOT}\\ffmpeg\\bin\\ffmpeg.exe`;
 
 const VIDEO_DIR =
-  "E:\\AI-Shorts\\videos";
+  process.env.VIDEO_DIR ??
+  `${AI_ROOT}\\videos`;
 
 function runFfmpeg(
   args: string[]

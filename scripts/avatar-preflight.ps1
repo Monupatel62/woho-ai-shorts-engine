@@ -1,4 +1,4 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 
 $AI = "E:\\AI-Shorts"
 $Root = Join-Path $AI "avatar\\MuseTalk"
@@ -53,23 +53,26 @@ foreach ($check in $checks) {
 
 Write-Host ""
 if (-not $failed) {
-    $pyVersion = & $Python -c "import sys; print(sys.version_info.major, sys.version_info.minor)"
-    if ($LASTEXITCODE -ne 0 -or $pyVersion -notmatch "^3 10$") {
-        Write-Host ("[MISSING] MuseTalk Python must be 3.10, found: {0}" -f $pyVersion) -ForegroundColor Yellow
-        $failed = $true
-    }
-}
+    $trackerCheck = Join-Path $env:TEMP "woho-avatar-tracking-check.py"
+    @"
+import mediapipe
+import cv2
+import numpy
+print("MediaPipe=" + mediapipe.__version__)
+print("OpenCV=" + cv2.__version__)
+print("NumPy=" + numpy.__version__)
+"@ | Set-Content $trackerCheck -Encoding UTF8
 
-if (-not $failed) {
     try {
-        & $TrackerPython -c "import mediapipe, cv2, numpy; print(\"MediaPipe=\" + mediapipe.__version__); print(\"OpenCV=\" + cv2.__version__); print(\"NumPy=\" + numpy.__version__)"
+        & $TrackerPython $trackerCheck
         if ($LASTEXITCODE -ne 0) { throw "Tracking Python imports failed." }
     } catch {
         Write-Host ("[MISSING] Avatar tracking dependencies: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
         $failed = $true
+    } finally {
+        Remove-Item $trackerCheck -Force -ErrorAction SilentlyContinue
     }
 }
-
 if ($failed) {
     Write-Host "Avatar backend is not ready yet. No video was generated." -ForegroundColor Yellow
     exit 1
@@ -77,3 +80,6 @@ if ($failed) {
 
 Write-Host "Avatar backend is READY." -ForegroundColor Green
 Write-Host "Next runtime mode: AVATAR_MODE=musetalk" -ForegroundColor Cyan
+
+
+

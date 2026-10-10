@@ -17,10 +17,16 @@ export interface VoiceResult {
   status: "pending" | "completed" | "failed";
 }
 
-const PIPER = "E:\\AI-Shorts\\ollama\\tts-venv\\Scripts\\piper.exe";
+const AI_ROOT = process.env.AI_ROOT ?? "E:\\AI-Shorts";
+const PIPER =
+  process.env.PIPER_PATH ??
+  `${AI_ROOT}\\ollama\\tts-venv\\Scripts\\piper.exe`;
 const MODEL =
-  "E:\\AI-Shorts\\models\\piper\\en_US-lessac-medium.onnx";
-const AUDIO_DIR = "E:\\AI-Shorts\\audio";
+  process.env.PIPER_MODEL ??
+  `${AI_ROOT}\\models\\piper\\en_US-lessac-medium.onnx`;
+const AUDIO_DIR =
+  process.env.AUDIO_DIR ??
+  `${AI_ROOT}\\audio`;
 
 export async function generateVoice(
   options: VoiceOptions

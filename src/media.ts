@@ -2,11 +2,15 @@
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 
-const FFPROBE = "E:\\AI-Shorts\\ffmpeg\\bin\\ffprobe.exe";
-const MEDIA_DIRS = [
-  "E:\\AI-Shorts\\images",
-  "E:\\AI-Shorts\\videos"
-];
+const AI_ROOT = process.env.AI_ROOT ?? "E:\\AI-Shorts";
+const FFPROBE =
+  process.env.FFPROBE_PATH ??
+  `${AI_ROOT}\\ffmpeg\\bin\\ffprobe.exe`;
+const MEDIA_DIRS: string[] = (
+  process.env.MEDIA_DIRS
+    ? process.env.MEDIA_DIRS.split(";").map((d) => d.trim()).filter(Boolean)
+    : [`${AI_ROOT}\\images`, `${AI_ROOT}\\videos`]
+);
 
 export interface MediaAsset {
   path: string;
